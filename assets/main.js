@@ -1,13 +1,27 @@
 // ==========================================
 // 1. PALETA DE COLORES Y ESTADO DE RULETAS
 // ==========================================
+const COLORES_CATEGORIA = {
+  "Botas": "#3498db",    // Azul
+  "Soporte": "#2ecc71",  // Verde
+  "Defensa": "#e67e22",  // Naranja
+  "Magia": "#9b59b6",    // Morado / Púrpura
+  "Físico": "#e74c3c"    // Rojo
+};
+
 const paletaColores = [
   "#9146ff", "#EF4444", "#06B6D4", 
   "#F59E0B", "#10B981", "#EC4899", 
   "#3B82F6", "#F97316", "#14B8A6"
 ];
 
-function obtenerColor(index, totalItems) {
+function obtenerColor(index, totalItems, item) {
+  // Para la pestaña de objetos, usamos el color estático de la categoría
+  if (pestañaActiva === 'objetos' && item && item.categoria) {
+    return COLORES_CATEGORIA[item.categoria] || "#9146ff";
+  }
+
+  // Para otras pestañas (como YouTube), usamos la paleta intercalada
   const paso = 3;
   let colorIndex = (index * paso) % paletaColores.length;
   if (index === totalItems - 1 && colorIndex === 0) {
@@ -139,7 +153,7 @@ function renderizarSidebarObjetos() {
   }
 
   objetosRuleta.forEach((item, index) => {
-    const colorHex = obtenerColor(index, objetosRuleta.length);
+    const colorHex = obtenerColor(index, objetosRuleta.length, item);
     const card = document.createElement('div');
     card.className = 'item-card';
 
@@ -220,8 +234,9 @@ function dibujarRuleta() {
 
   lista.forEach((item, index) => {
     const angle = anguloActual + index * arc;
-    const colorHex = obtenerColor(index, total);
+    const colorHex = obtenerColor(index, total, item);
 
+    // Dibujar el sector
     ctx.beginPath();
     ctx.fillStyle = colorHex;
     ctx.moveTo(centerX, centerY);
@@ -229,20 +244,24 @@ function dibujarRuleta() {
     ctx.lineTo(centerX, centerY);
     ctx.fill();
     ctx.strokeStyle = '#0f0f13';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 2;
     ctx.stroke();
 
-    const textoMostrar = typeof item === 'object' ? item.nombre : item;
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(angle + arc / 2);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 14px Inter, sans-serif";
-    ctx.fillText(textoMostrar, radius - 30, 5);
-    ctx.restore();
+    // Solo dibujar el texto si NO estamos en la pestaña de objetos
+    if (pestañaActiva !== 'objetos') {
+      const textoMostrar = typeof item === 'object' ? item.nombre : item;
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(angle + arc / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 14px Inter, sans-serif";
+      ctx.fillText(textoMostrar, radius - 30, 5);
+      ctx.restore();
+    }
   });
 
+  // Dibujar el círculo central
   ctx.beginPath();
   ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
   ctx.fillStyle = '#0f0f13';
